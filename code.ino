@@ -7,12 +7,12 @@
 #define irright 4 
 #define Switch 13
 
-int goStraight = 1000;
-int rotateTime = 3000;
+int goStraight = 500;
+int rotateTime = 1500;
 int i=0;
 char ar[20],c;
 void fun(); 
-int left =0; 
+int left=0; 
 int centre=0;
 int right=0;
 
@@ -25,7 +25,7 @@ void setup() {
   pinMode (lmotorb, OUTPUT);
   pinMode (rmotorf, OUTPUT);
   pinMode (rmotorb, OUTPUT);
-   left = digitalRead (irleft);
+  left = digitalRead (irleft);
 centre = digitalRead (ircentre);
 right = digitalRead (irright);
 
@@ -36,121 +36,129 @@ void loop()
 {
   if(digitalRead(Switch) != 0)
   {
-  left = digitalRead (irleft);
-  centre = digitalRead (ircentre);
-  right = digitalRead (irright);
+    left = digitalRead (irleft);
+    centre = digitalRead (ircentre);
+    right = digitalRead (irright);
 
-
-if(left == 1 && centre == 0 && right == 1)
- {
-    moveForward();
- }
-if(left == 0 && centre == 0 && right == 1)
- {
-    while (left == 0 && centre == 0 && right == 1)
+    if(digitalRead (irleft) == 1 && digitalRead (ircentre) == 0 && digitalRead (irright) == 1)
     {
       moveForward();
     }
-  delay(goStraight);
-  turnLeft();
-  delay(rotateTime);
- }
+    if(digitalRead (irleft) == 0 && digitalRead (ircentre) == 0 && digitalRead (irright) == 1)     // L intersection: Left side
+    {
+      while (digitalRead (irleft) == 0 && digitalRead (ircentre) == 0 && digitalRead (irright) == 1)     // delay Gostraight
+      {
+        moveForward();
+      }
+      delay(goStraight);
+      turnLeft();
+      delay(rotateTime);
+    }
  
- if(left == 1 && centre == 0 && right == 0){
-  while (left == 1 && centre == 0 && right == 0)
+    if(digitalRead (irleft) == 1 && digitalRead (ircentre) == 0 && digitalRead (irright) == 0)          // L intersection: right side
+    {
+      while (digitalRead (irleft) == 1 && digitalRead (ircentre) == 0 && digitalRead (irright) == 0)
+      {
+        moveForward();
+      
+      delay(goStraight);
+
+      if (digitalRead (irleft) == 1 && digitalRead (ircentre) == 0 && digitalRead (irright) == 1)            // If straight line detected break out of if braces
+      {
+        break;
+      }
+      turnRight();
+      delay (rotateTime);
+      }
+    }
+ 
+    if(digitalRead (irleft) == 0 && digitalRead (ircentre) == 0 && digitalRead (irright) == 0)    // T interseection
+    {
+      while (digitalRead (irleft) == 0 && digitalRead (ircentre) == 0 && digitalRead (irright) == 0){
+        moveForward();
+    }
+    delay(goStraight);
+    turnLeft();
+    delay(rotateTime); 
+  } 
+ 
+  if(digitalRead (irleft) == 1 && digitalRead (ircentre) == 1 && digitalRead (irright) == 1)   // dead End
   {
-    moveForward();
-  }
-  delay(goStraight);
-  turnRight();
-  delay (3000);
- }
- 
- if(left == 0 && centre == 0 && right == 0)    // T interseection
- {
-  while (left == 0 && centre == 0 && right == 0){
-    moveForward();
-  }
-  delay(goStraight);
-  turnRight();
-  delay(3000); 
- } 
- 
-  if(left == 1 && centre == 1 && right == 1)   // dead End
- {
-  turnBack();
- }
-
+    turnBack();
   }
 
-  else
-{
-  
-while(ar[i]!='\0')
-
-{ 
- if(left == 0)
- {
-  if(centre == 0)
-  {
- if(ar[i]=='l')
-{
-  turnLeft();
- i++;
- }
- if(ar[i]=='r')
- {
-  turnRight();
- i++;
- }
- if(ar[i]=='s')
- {
-  moveForward();
- i++;
- }
- }
-
- 
- else
- {
-  if(right == 0)
-  {
- digitalWrite (lmotorf, LOW);
- digitalWrite (lmotorb, LOW);
- digitalWrite (rmotorf, LOW);
- digitalWrite (rmotorb, LOW);
- }
- }
-  
 }
 
-
-else
-{
-  if(right== 0)
-  { if(ar[i]=='l')
-{ turnLeft();
- i++;
- }
- if(ar[i]=='r')
- {turnRight();
- i++;
- }
- if(ar[i]=='s')
- {moveForward();
- i++;
- }
+  else           // Main Run
+  {
   
+  while(ar[i]!='\0')
+  { 
+    if(digitalRead (irleft) == 0 || digitalRead (irright) == 0)      // Check For intersection
+    {
+      if(digitalRead (irleft) == 0)         
+      {
+        if(digitalRead (ircentre) == 0)
+        {
+          if(ar[i]=='l')
+          {
+            turnLeft();
+            i++;
+          }
+          if(ar[i]=='r')
+          {
+            turnRight();
+            i++;
+          }
+          if(ar[i]=='s')
+          {
+            moveForward();
+            i++;
+          }
+        }
+        else
+        {
+          if(digitalRead (irright) == 0)
+          {
+            digitalWrite (lmotorf, LOW);
+            digitalWrite (lmotorb, LOW);
+            digitalWrite (rmotorf, LOW);
+            digitalWrite (rmotorb, LOW);
+          }
+        }
+      }
+      else
+      {
+        if(digitalRead (irright)== 0)
+        { 
+          if(ar[i]=='l')
+          { 
+            turnLeft();
+            i++;
+          }
+          if(ar[i]=='r')
+          {
+            turnRight();
+            i++;
+          }
+          if(ar[i]=='s')
+          {
+            moveForward();
+            i++;
+          }
+        }
+      }
+    }
+  }
 }
 }
-}}}
 
 
 
 
 void moveForward()
 {
-  digitalWrite (lmotorf, HIGH);      // left Motor Forward
+  digitalWrite (lmotorf, HIGH);      // digitalRead (irleft) Motor Forward
   digitalWrite (lmotorb, LOW);
   digitalWrite (rmotorf, HIGH);      // Right Motor Forward
   digitalWrite (rmotorb, LOW);
